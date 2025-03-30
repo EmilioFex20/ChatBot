@@ -136,6 +136,6 @@ dist
 .pnp.*
 
 auth_info_baileys/
-respuestas/
-contactos_excluir/
+respuestas.json
+contactos_excluir.json
 
