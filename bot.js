@@ -4,6 +4,8 @@ import {
   DisconnectReason,
 } from "@whiskeysockets/baileys";
 import * as fs from "fs";
+import excluirContactos from "./contactos_excluir.json" with { type: "json" };
+import respuestas from "./respuestas.json" with { type: "json" };
 
 async function connectToWhatsApp() {
   const { state, saveCreds } = await useMultiFileAuthState("auth_info_baileys");
@@ -35,22 +37,6 @@ async function connectToWhatsApp() {
       console.log("Conectado a WhatsApp");
     }
   });
-
-  const excluirContactos = [
-    "521XXXXXXXXXX@s.whatsapp.net",
-    "YYYYYYYYYYYYYYYYYY@g.us",
-  ];
-
-  const respuestas = {
-    "doble grado":
-      "El programa de doble grado te permite obtener dos títulos universitarios simultáneamente en dos universidades.",
-    becas:
-      "Para información sobre becas, consulta la página oficial de becas de Cetys Universidad.",
-    inscripción:
-      "Las inscripciones se realizan en línea en el portal de estudiantes micampus.",
-    horarios:
-      "Los horarios de clase se publican en el portal micampus antes de cada semestre. A su vez, se encuentra disponible en la app de Cetys Universidad.",
-  };
 
   sock.ev.on("messages.upsert", async ({ messages }) => {
     for (const msg of messages) {
