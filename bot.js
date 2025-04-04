@@ -7,6 +7,9 @@ import {
 import * as fs from "fs";
 import excluirContactos from "./contactos_excluir.json" with { type: "json" };
 import respuestas from "./respuestas.json" with { type: "json" };
+import crypto from "crypto";
+globalThis.crypto = crypto.webcrypto;
+
 
 async function connectToWhatsApp() {
   const { state, saveCreds } = await useMultiFileAuthState("auth_info_baileys");
