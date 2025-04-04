@@ -2,14 +2,10 @@ import {
   makeWASocket,
   useMultiFileAuthState,
   DisconnectReason,
-  Boom,
 } from "@whiskeysockets/baileys";
 import * as fs from "fs";
 import excluirContactos from "./contactos_excluir.json" with { type: "json" };
 import respuestas from "./respuestas.json" with { type: "json" };
-import crypto from "crypto";
-globalThis.crypto = crypto.webcrypto;
-
 
 async function connectToWhatsApp() {
   const { state, saveCreds } = await useMultiFileAuthState("auth_info_baileys");
@@ -17,19 +13,13 @@ async function connectToWhatsApp() {
   const sock = makeWASocket({
     auth: state,
     printQRInTerminal: true,
-    markOnlineOnConnect: false,
-    logger: {
-      level: "debug",
-      stream: "console",
-    },
   });
 
   sock.ev.on("creds.update", saveCreds);
 
-  sock.ev.on("connection.update", async (update) => {
+  sock.ev.on("connection.update", (update) => {
     const { connection, lastDisconnect } = update;
     const error = lastDisconnect?.error;
-    const statusCode = error instanceof Boom ? error.output?.statusCode : null;
 
     if (connection === "open") {
       console.log("Conectado a WhatsApp correctamente.");
@@ -37,25 +27,19 @@ async function connectToWhatsApp() {
     }
 
     if (connection === "close") {
-      if (statusCode === DisconnectReason.loggedOut) {
-        console.log("⚠️ Sesión cerrada en todos los dispositivos.");
+      const reason = lastDisconnect?.error?.output?.statusCode;
+
+      if (reason == DisconnectReason.loggedOut) {
+        console.log("Sesión cerrada en todos los dispositivos.");
         fs.rmSync("auth_info_baileys", { recursive: true, force: true });
-        console.log("🔄 Se borraron las credenciales. Se requerirá un nuevo QR.");
-      } else if (statusCode === DisconnectReason.badSession) {
-        console.log("❌ Sesión inválida. Eliminando credenciales...");
-        fs.rmSync("auth_info_baileys", { recursive: true, force: true });
-      } else if (statusCode === DisconnectReason.connectionClosed) {
-        console.log("🔌 Conexión cerrada. Intentando reconectar...");
-      } else if (statusCode === DisconnectReason.connectionLost) {
-        console.log("⚠️ Conexión perdida. Intentando reconectar...");
-      } else {
-        console.log(`⚠️ Error desconocido (${statusCode}). Intentando reconectar...`);
+        console.log(
+          "Se borraron los datos de autenticación. Se dará un nuevo QR en la próxima ejecución."
+        );
       }
 
-      // Espera 5 segundos antes de reconectar para evitar bucle infinito
-      await new Promise((res) => setTimeout(res, 5000));
+      console.log("Reconectando...");
       connectToWhatsApp();
-    }
+    } 
   });
 
   sock.ev.on("messages.upsert", async ({ messages }) => {
