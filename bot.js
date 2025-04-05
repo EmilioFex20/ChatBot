@@ -30,11 +30,16 @@ async function connectToWhatsApp() {
       const reason = lastDisconnect?.error?.output?.statusCode;
 
       if (reason == DisconnectReason.loggedOut) {
-        console.log("Sesión cerrada en todos los dispositivos.");
+        console.log("Sesión cerrada en todos los dispositivos");
         fs.rmSync("auth_info_baileys", { recursive: true, force: true });
         console.log(
-          "Se borraron los datos de autenticación. Se dará un nuevo QR en la próxima ejecución."
+          "Se borraron los datos de autenticación. Se dará un nuevo QR en la próxima ejecución"
         );
+      } else if (statusCode === DisconnectReason.badSession) {
+        console.log("Sesión inválida. Eliminando credenciales");
+        fs.rmSync("auth_info_baileys", { recursive: true, force: true });
+      } else {
+        console.log(`Error (${statusCode}). Intentando reconectar`);
       }
 
       console.log("Reconectando...");
