@@ -3,12 +3,13 @@ import {
   useMultiFileAuthState,
   DisconnectReason,
 } from "@whiskeysockets/baileys";
+import { useMongoAuth } from "./mongoAuth.js";
 import * as fs from "fs";
 import excluirContactos from "./contactos_excluir.json" with { type: "json" };
 import respuestas from "./respuestas.json" with { type: "json" };
 
 async function connectToWhatsApp() {
-  const { state, saveCreds } = await useMultiFileAuthState("auth_info_baileys");
+  const { state, saveCreds } = await useMongoAuth();
 
   const sock = makeWASocket({
     auth: state,
@@ -35,11 +36,11 @@ async function connectToWhatsApp() {
         console.log(
           "Se borraron los datos de autenticación. Se dará un nuevo QR en la próxima ejecución"
         );
-      } else if (statusCode === DisconnectReason.badSession) {
+      } else if (reason === DisconnectReason.badSession) {
         console.log("Sesión inválida. Eliminando credenciales");
         fs.rmSync("auth_info_baileys", { recursive: true, force: true });
       } else {
-        console.log(`Error (${statusCode}). Intentando reconectar`);
+        console.log(`Error (${reason}). Intentando reconectar`);
       }
 
       console.log("Reconectando...");
