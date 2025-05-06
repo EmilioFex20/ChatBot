@@ -12,6 +12,8 @@
   "type": "module",
   "dependencies": {
     "@whiskeysockets/baileys": "^6.7.16",
+    "bson": "^6.10.3",
+    "mongodb": "^6.16.0",
     "qrcode-terminal": "^0.12.0"
   }
 }
