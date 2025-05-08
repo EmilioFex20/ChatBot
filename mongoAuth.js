@@ -4,8 +4,10 @@ import {
   WAProto,
   BufferJSON
 } from "@whiskeysockets/baileys";
+import dotenv from "dotenv";
+dotenv.config();
 
-const MONGO_URI = "mongodb+srv://emiliofdz208:Lk20OjmXsA9oNwfo@cluster0.ubamjsp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+const MONGO_URI = process.env.MONGO_URI;
 const DB_NAME = "baileys_auth";
 const COLLECTION_NAME = "auth_state";
 
