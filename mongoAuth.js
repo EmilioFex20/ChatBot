@@ -1,65 +1,75 @@
-import Auth from "./models/Auth.js";
-import mongoose from "mongoose";
+import { MongoClient } from "mongodb";
+import {
+  initAuthCreds,
+  WAProto,
+  BufferJSON
+} from "@whiskeysockets/baileys";
 import dotenv from "dotenv";
-import { initAuthCreds, BufferJSON } from "@whiskeysockets/baileys";
+dotenv.config();
 
-dotenv.config({ path: ".env.local" });
+const MONGO_URI = process.env.MONGO_URI;
+const DB_NAME = "baileys_auth";
+const COLLECTION_NAME = "auth_state";
 
-const uri = process.env.MONGODB_URI;
+export const useMongoAuthState = async () => {
+  const client = new MongoClient(MONGO_URI);
+  await client.connect();
 
-export const useMongoAuth = async () => {
-  if (!uri) {
-    throw new Error("No se encontró MONGODB_URI en las variables de entorno");
-  }
+  const db = client.db(DB_NAME);
+  const collection = db.collection(COLLECTION_NAME);
 
-  await mongoose.connect(uri);
-  let auth = await Auth.findOne({ id: "default" });
-
-  if (!auth) {
-    auth = new Auth({
-      id: "default",
-      creds: initAuthCreds(),
-      keys: {},
-    });
-    await auth.save();
-  }
-
-  const state = {
-    creds: auth.creds,
-    keys: {
-      get: async (type, ids) => {
-        const data = {};
-        for (const id of ids) {
-          const value = auth.keys?.[type]?.[id];
-          if (value) {
-            data[id] = BufferJSON.toObject(value);
-          }
-        }
-        return data;
-      },
-      set: async (data) => {
-        for (const type in data) {
-          if (!auth.keys[type]) auth.keys[type] = {};
-          for (const id in data[type]) {
-            auth.keys[type][id] = BufferJSON.fromObject(data[type][id]);
-          }
-        }
-        await auth.save();
-      },
-    },
+  const readData = async (id) => {
+    const doc = await collection.findOne({ _id: id });
+    return doc?.data ? JSON.parse(doc.data, BufferJSON.reviver) : null;
   };
 
-  const saveCreds = async () => {
-    await Auth.updateOne(
-      { id: "default" },
-      { $set: { creds: state.creds, keys: auth.keys } },
+  const writeData = async (id, value) => {
+    await collection.updateOne(
+      { _id: id },
+      { $set: { data: JSON.stringify(value, BufferJSON.replacer) } },
       { upsert: true }
     );
   };
 
-  const clearCreds = async () => {
-    await Auth.deleteOne({ id: "default" });
+  const removeData = async (id) => {
+    await collection.deleteOne({ _id: id });
   };
 
-  return { state, saveCreds, clearCreds };
+  const creds = (await readData("creds")) || initAuthCreds();
+
+  return {
+    state: {
+      creds,
+      keys: {
+        get: async (type, ids) => {
+          const result = {};
+          await Promise.all(
+            ids.map(async (id) => {
+              let value = await readData(`${type}-${id}`);
+              if (type === "app-state-sync-key" && value) {
+                value = WAProto.Message.AppStateSyncKeyData.fromObject(value);
+              }
+              result[id] = value;
+            })
+          );
+          return result;
+        },
+        set: async (data) => {
+          const tasks = [];
+
+          for (const category in data) {
+            for (const id in data[category]) {
+              const value = data[category][id];
+              const key = `${category}-${id}`;
+              tasks.push(value ? writeData(key, value) : removeData(key));
+            }
+          }
+
+          await Promise.all(tasks);
+        }
+      }
+    },
+    saveCreds: () => writeData("creds", creds)
+  };
 };
+

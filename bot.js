@@ -5,12 +5,12 @@ import {
 } from "@whiskeysockets/baileys";
 import { useMongoAuth } from "./mongoAuth.js";
 import * as fs from "fs";
+import { useMongoAuthState } from "./mongoAuth.js"; // nuevo archivo
 import excluirContactos from "./contactos_excluir.json" with { type: "json" };
 import respuestas from "./respuestas.json" with { type: "json" };
 
 async function connectToWhatsApp() {
-  const { state, saveCreds } = await useMongoAuth();
-
+  const { state, saveCreds } = await useMongoAuthState();
   const sock = makeWASocket({
     auth: state,
     printQRInTerminal: true,
@@ -43,8 +43,10 @@ async function connectToWhatsApp() {
         console.log(`Error (${reason}). Intentando reconectar`);
       }
 
-      console.log("Reconectando...");
-      connectToWhatsApp();
+      setTimeout(() => {
+        console.log("Reconectando...");
+        connectToWhatsApp();
+      }, 3000);      
     } 
   });
 
