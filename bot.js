@@ -1,11 +1,9 @@
 import {
   makeWASocket,
-  useMultiFileAuthState,
   DisconnectReason,
 } from "@whiskeysockets/baileys";
-import { useMongoAuth } from "./mongoAuth.js";
 import * as fs from "fs";
-import { useMongoAuthState } from "./mongoAuth.js"; // nuevo archivo
+import { useMongoAuthState } from "./mongoAuth.js"; 
 import excluirContactos from "./contactos_excluir.json" with { type: "json" };
 import respuestas from "./respuestas.json" with { type: "json" };
 
