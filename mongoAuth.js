@@ -10,9 +10,9 @@ dotenv.config();
 const MONGO_URI = process.env.MONGO_URI;
 const DB_NAME = "baileys_auth";
 const COLLECTION_NAME = "auth_state";
+const client = new MongoClient(MONGO_URI);
 
 export const useMongoAuthState = async () => {
-  const client = new MongoClient(MONGO_URI);
   await client.connect();
 
   const db = client.db(DB_NAME);
@@ -73,3 +73,18 @@ export const useMongoAuthState = async () => {
   };
 };
 
+export async function borrarSesionMongo() {
+  try {
+    await client.connect();
+    const db = client.db(DB_NAME);
+    const collection = db.collection(COLLECTION_NAME);
+
+    const result = await collection.deleteMany({});
+
+    console.log(`🗑️ Se eliminaron ${result.deletedCount} documentos de autenticación.`);
+  } catch (err) {
+    console.error("❌ Error al eliminar sesión:", err);
+  } finally {
+    await client.close();
+  }
+}

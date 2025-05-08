@@ -4,6 +4,7 @@ import {
 } from "@whiskeysockets/baileys";
 import * as fs from "fs";
 import { useMongoAuthState } from "./mongoAuth.js"; 
+import { borrarSesionMongo } from "./mongoAuth.js";
 import excluirContactos from "./contactos_excluir.json" with { type: "json" };
 import respuestas from "./respuestas.json" with { type: "json" };
 
@@ -16,7 +17,7 @@ async function connectToWhatsApp() {
 
   sock.ev.on("creds.update", saveCreds);
 
-  sock.ev.on("connection.update", (update) => {
+  sock.ev.on("connection.update", async (update) => {
     const { connection, lastDisconnect } = update;
     const error = lastDisconnect?.error;
 
@@ -30,13 +31,13 @@ async function connectToWhatsApp() {
 
       if (reason == DisconnectReason.loggedOut) {
         console.log("Sesión cerrada en todos los dispositivos");
-        fs.rmSync("auth_info_baileys", { recursive: true, force: true });
+        await borrarSesionMongo();
         console.log(
           "Se borraron los datos de autenticación. Se dará un nuevo QR en la próxima ejecución"
         );
       } else if (reason === DisconnectReason.badSession) {
         console.log("Sesión inválida. Eliminando credenciales");
-        fs.rmSync("auth_info_baileys", { recursive: true, force: true });
+        await borrarSesionMongo();
       } else {
         console.log(`Error (${reason}). Intentando reconectar`);
       }
