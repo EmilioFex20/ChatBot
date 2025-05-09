@@ -3,10 +3,13 @@ import {
   DisconnectReason,
 } from "@whiskeysockets/baileys";
 import * as fs from "fs";
+import express from "express";
 import { useMongoAuthState } from "./mongoAuth.js"; 
 import { borrarSesionMongo } from "./mongoAuth.js";
 import excluirContactos from "./contactos_excluir.json" with { type: "json" };
 import respuestas from "./respuestas.json" with { type: "json" };
+
+let QRactual = null;
 
 async function connectToWhatsApp() {
   const { state, saveCreds } = await useMongoAuthState();
@@ -18,11 +21,15 @@ async function connectToWhatsApp() {
   sock.ev.on("creds.update", saveCreds);
 
   sock.ev.on("connection.update", async (update) => {
-    const { connection, lastDisconnect } = update;
+    const { connection, lastDisconnect, qr  } = update;
     const error = lastDisconnect?.error;
+    if (qr) {
+      QRactual = qr;
+    }
 
     if (connection === "open") {
       console.log("Conectado a WhatsApp correctamente.");
+      QRactual = null;
       return;
     }
 
@@ -82,3 +89,18 @@ async function connectToWhatsApp() {
 }
 
 connectToWhatsApp();
+
+const app = express();
+const PORT = 3000;
+
+app.get("/qr", (req, res) => {
+  if (!QRactual) {
+    return res.json({ status: "404", message: "No hay QR :(" });
+  }
+
+  return res.json({ status: "500", qr: QRactual });
+});
+
+app.listen(PORT, () => {
+  console.log(`Servidor Express corriendo en http://localhost:${PORT}`);
+});

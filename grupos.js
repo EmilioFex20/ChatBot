@@ -1,7 +1,8 @@
 import { makeWASocket, useMultiFileAuthState } from "@whiskeysockets/baileys";
+import { useMongoAuthState } from "./mongoAuth.js"; 
 
 async function obtenerGrupos() {
-  const { state, saveCreds } = await useMultiFileAuthState("auth_info_baileys");
+  const { state, saveCreds } = await useMongoAuthState();
   const sock = makeWASocket({
     auth: state,
     printQRInTerminal: true,
