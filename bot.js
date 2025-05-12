@@ -95,10 +95,9 @@ const PORT = 3000;
 
 app.get("/qr", (req, res) => {
   if (!QRactual) {
-    return res.json({ status: "404", message: "No hay QR :(" });
+    return res.json({ status: "fallo", message: "No hay QR :|" });
   }
-
-  return res.json({ status: "500", qr: QRactual });
+  return res.json({ status: "ok", qr: QRactual });
 });
 
 app.listen(PORT, () => {
