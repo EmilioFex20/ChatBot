@@ -1,4 +1,4 @@
-import { makeWASocket, useMultiFileAuthState } from "@whiskeysockets/baileys";
+import { makeWASocket } from "@whiskeysockets/baileys"; 
 import { useMongoAuthState } from "./mongoAuth.js"; 
 
 async function obtenerGrupos() {
@@ -21,7 +21,7 @@ async function listarGrupos(sock) {
   const chats = await sock.groupFetchAllParticipating();
   console.log("Lista de grupos:");
   for (const id in chats) {
-    console.log(`Grupo: ${chats[id].subject} - ID: ${id}`);
+    console.log(`Grupo: ${chats[id].subject} - ID: ${id}`); 
   }
 }
 

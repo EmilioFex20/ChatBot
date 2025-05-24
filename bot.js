@@ -2,7 +2,6 @@ import {
   makeWASocket,
   DisconnectReason,
 } from "@whiskeysockets/baileys";
-import * as fs from "fs";
 import express from "express";
 import { useMongoAuthState } from "./mongoAuth.js"; 
 import { borrarSesionMongo } from "./mongoAuth.js";
@@ -10,10 +9,11 @@ import excluirContactos from "./contactos_excluir.json" with { type: "json" };
 import respuestas from "./respuestas.json" with { type: "json" };
 
 let QRactual = null;
+let sock = null;
 
 async function connectToWhatsApp() {
   const { state, saveCreds } = await useMongoAuthState();
-  const sock = makeWASocket({
+  sock = makeWASocket({
     auth: state,
     printQRInTerminal: true,
   });
@@ -91,13 +91,25 @@ async function connectToWhatsApp() {
 connectToWhatsApp();
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT;
 
 app.get("/qr", (req, res) => {
   if (!QRactual) {
     return res.json({ status: "fallo", message: "No hay QR :|" });
   }
   return res.json({ status: "ok", qr: QRactual });
+});
+
+app.get("/grupos", async (req, res) => {
+    if (!sock || sock.user === undefined) {
+    return res.status(503).json({ error: "WhatsApp no está conectado aún" });
+  }
+  const chats = await sock.groupFetchAllParticipating();
+  const grupos = Object.entries(chats).map(([id, chat]) => ({
+    id,
+    subject: chat.subject,
+  }));
+  res.json(grupos);
 });
 
 app.listen(PORT, () => {
