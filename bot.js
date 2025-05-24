@@ -121,7 +121,7 @@ app.get("/contactos", async (req, res) => {
     return res.status(503).json({ error: "WhatsApp no está conectado aún" });
   }
   const chats = await sock.chats.all();
-  const contactos = chats
+  const contactos = Object.entries(chats)
   .filter((chat) => !chat.id.endsWith("@g.us"))
   .map((chat) => ({
     id: chat.id,
