@@ -7,7 +7,9 @@ import { useMongoAuthState } from "./mongoAuth.js";
 import { borrarSesionMongo } from "./mongoAuth.js";
 import excluirContactos from "./contactos_excluir.json" with { type: "json" };
 import respuestas from "./respuestas.json" with { type: "json" };
+import dotenv from "dotenv";
 
+dotenv.config();
 let QRactual = null;
 let sock = null;
 
