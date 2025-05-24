@@ -3,6 +3,7 @@ import {
   DisconnectReason,
 } from "@whiskeysockets/baileys";
 import express from "express";
+import cors from 'cors';
 import { useMongoAuthState } from "./mongoAuth.js"; 
 import { borrarSesionMongo } from "./mongoAuth.js";
 import excluirContactos from "./contactos_excluir.json" with { type: "json" };
@@ -93,6 +94,7 @@ async function connectToWhatsApp() {
 connectToWhatsApp();
 
 const app = express();
+app.use(cors()); 
 const PORT = process.env.PORT;
 
 app.get("/qr", (req, res) => {
