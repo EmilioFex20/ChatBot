@@ -9,8 +9,25 @@ import { borrarSesionMongo } from "./mongoAuth.js";
 import excluirContactos from "./contactos_excluir.json" with { type: "json" };
 import respuestas from "./respuestas.json" with { type: "json" };
 import dotenv from "dotenv";
+import bodyParser from "body-parser";
+import fs from "fs";
 
+const EXCLUIR_PATH = "./contactos_excluir.json";
 dotenv.config();
+
+function leerContactosExcluidos() {
+  try {
+    return JSON.parse(fs.readFileSync(EXCLUIR_PATH, "utf-8"));
+  } catch (err) {
+    console.error("Error leyendo el archivo de exclusión:", err);
+    return [];
+  }
+}
+
+function guardarContactosExcluidos(nuevaLista) {
+  fs.writeFileSync(EXCLUIR_PATH, JSON.stringify(nuevaLista, null, 2), "utf-8");
+}
+
 let QRactual = null;
 let sock = null;
 
@@ -94,7 +111,7 @@ async function connectToWhatsApp() {
 connectToWhatsApp();
 
 const app = express();
-app.use(cors()); 
+app.use(cors(), bodyParser.json(), express.json()); 
 const PORT = process.env.PORT;
 
 app.get("/qr", (req, res) => {
@@ -102,6 +119,42 @@ app.get("/qr", (req, res) => {
     return res.json({ status: "fallo", message: "No hay QR :|" });
   }
   return res.json({ status: "ok", qr: QRactual });
+});
+
+app.post("/excluir-grupos", (req, res) => {
+  const { grupos } = req.body;
+
+  if (!Array.isArray(grupos)) {
+    return res.status(400).json({ status: "error", message: "Formato inválido" });
+  }
+
+  const actuales = leerContactosExcluidos();
+  const nuevos = [...new Set([...actuales, ...grupos])];
+
+  guardarContactosExcluidos(nuevos);
+
+  res.json({ status: "ok", excluidos: nuevos });
+});
+
+app.post("/excluir", (req, res) => {
+  const { numero } = req.body;
+
+  if (!numero || typeof numero !== "string") {
+    return res.status(400).json({ message: "Número inválido" });
+  }
+
+  let contactos = [];
+  if (fs.existsSync(EXCLUIR_PATH)) {
+    contactos = JSON.parse(fs.readFileSync(EXCLUIR_PATH));
+  }
+
+  if (!contactos.includes(numero)) {
+    contactos.push(numero);
+    fs.writeFileSync(EXCLUIR_PATH, JSON.stringify(contactos, null, 2));
+    return res.json({ message: "Número excluido exitosamente" });
+  }
+
+  res.json({ message: "Ese número ya estaba excluido" });
 });
 
 app.get("/grupos", async (req, res) => {
@@ -116,19 +169,20 @@ app.get("/grupos", async (req, res) => {
   res.json(grupos);
 });
 
-app.get("/contactos", async (req, res) => {
+/*app.get("/contactos", async (req, res) => {
   if (!sock || sock.user === undefined) {
     return res.status(503).json({ error: "WhatsApp no está conectado aún" });
   }
   const chats = await sock.chats.all();
-  const contactos = Object.entries(chats)
+  console.log(chats);
+  const contactos = chats
   .filter((chat) => !chat.id.endsWith("@g.us"))
   .map((chat) => ({
     id: chat.id,
     nombre: chat.name || chat.pushName || "Sin nombre",
   }));
   res.json(contactos);
-});
+});*/
 
 app.listen(PORT, () => {
   console.log(`Servidor Express corriendo en http://localhost:${PORT}`);

@@ -12,10 +12,12 @@
   "type": "module",
   "dependencies": {
     "@whiskeysockets/baileys": "^6.7.16",
+    "body-parser": "^2.2.0",
     "bson": "^6.10.3",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
+    "fs": "^0.0.1-security",
     "mongodb": "^6.16.0",
     "qrcode-terminal": "^0.12.0"
   }
