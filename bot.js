@@ -76,6 +76,9 @@ async function connectToWhatsApp() {
     } 
   });
 
+
+  const estadoConversacion = {};
+
   sock.ev.on("messages.upsert", async ({ messages }) => {
     for (const msg of messages) {
       if (!msg.key.fromMe) {
@@ -103,6 +106,12 @@ async function connectToWhatsApp() {
         await sock.sendMessage(sender, {
           text: respuesta,
         });
+        estadoConversacion[sender] = "esperando";
+      }
+      if (msg.key.fromMe) {
+        const sender = msg.key.remoteJid;
+        estadoConversacion[sender] = null;
+        console.log(`Se restablece estado de ${sender}`);
       }
     }
   });
