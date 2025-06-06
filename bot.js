@@ -121,7 +121,7 @@ connectToWhatsApp();
 
 const app = express();
 const corsOptions = {
-  origin: ["https://chat-bot-landin.vercel.app/QRpage"],
+  origin: ["https://chat-bot-landin.vercel.app"],
   methods: ["GET", "POST"],
   credentials: true,
 };
