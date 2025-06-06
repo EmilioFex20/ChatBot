@@ -83,11 +83,12 @@ async function connectToWhatsApp() {
     for (const msg of messages) {
       if (!msg.key.fromMe) {
         const sender = msg.key.remoteJid;
+        const excluirContactos = leerContactosExcluidos();
+
         if (excluirContactos.includes(sender)) {
           console.log(`Mensaje ignorado de: ${sender}`);
           continue;
         }
-        const excluirContactos = leerContactosExcluidos();
         if (estadoConversacion[sender] === "esperando") {
           console.log(`Esperando respuesta de ${sender}, no se responde.`);
           continue;
