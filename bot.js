@@ -178,21 +178,6 @@ app.get("/grupos", async (req, res) => {
   res.json(grupos);
 });
 
-/*app.get("/contactos", async (req, res) => {
-  if (!sock || sock.user === undefined) {
-    return res.status(503).json({ error: "WhatsApp no está conectado aún" });
-  }
-  const chats = await sock.chats.all();
-  console.log(chats);
-  const contactos = chats
-  .filter((chat) => !chat.id.endsWith("@g.us"))
-  .map((chat) => ({
-    id: chat.id,
-    nombre: chat.name || chat.pushName || "Sin nombre",
-  }));
-  res.json(contactos);
-});*/
-
 app.listen(PORT, () => {
   console.log(`Servidor Express corriendo en http://localhost:${PORT}`);
 });
