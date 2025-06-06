@@ -120,8 +120,14 @@ async function connectToWhatsApp() {
 connectToWhatsApp();
 
 const app = express();
-app.use(cors(), bodyParser.json(), express.json()); 
+const corsOptions = {
+  origin: ["https://chat-bot-landin.vercel.app/QRpage"],
+  methods: ["GET", "POST"],
+  credentials: true,
+};
+app.use(cors(corsOptions), bodyParser.json(), express.json()); 
 const PORT = process.env.PORT;
+
 
 app.get("/qr", (req, res) => {
   if (!QRactual) {
